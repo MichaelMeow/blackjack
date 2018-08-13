@@ -1,7 +1,40 @@
 /* Back end logic */
 
-var ranks = ["ace", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "jack", "queen", "king"];
+var ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 var suits = ["clubs", "spades", "diamonds", "hearts"];
+
+function cardValue(array){
+  if (array[0] == "A"){
+    return 11
+  }
+  if (array[0] == "2"){
+    return 2
+  }
+  if (array[0] == "3"){
+    return 3
+  }
+  if (array[0] == "4"){
+    return 4
+  }
+  if (array[0] == "5"){
+    return 5
+  }
+  if (array[0] == "6"){
+    return 6
+  }
+  if (array[0] == "7"){
+    return 7
+  }
+  if (array[0] == "8"){
+    return 8
+  }
+  if (array[0] == "9"){
+    return 9
+  }
+  if (array[0] == "10" || array[0] == "J" || array[0] == "Q" || array[0] == "K"){
+    return 10
+  }
+}
 
 var deck = [];
 
@@ -15,27 +48,18 @@ for (var i = 0; i < ranks.length; i++) {
 /* https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array */
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
-
   // While there remain elements to shuffle...
   while (0 !== currentIndex) {
-
     // Pick a remaining element...
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex -= 1;
-
     // And swap it with the current element.
     temporaryValue = array[currentIndex];
     array[currentIndex] = array[randomIndex];
     array[randomIndex] = temporaryValue;
   }
-
   return array;
 }
-
-// If we want to name the cards later
-// function toDisplayName(cardArray) {
-//   return cardArray[0] + 'of '
-// }
 
 var dealCards = function(array, n) {
   var cards = [];
@@ -46,48 +70,6 @@ var dealCards = function(array, n) {
 }
 
 var shuffledDeck = shuffle(deck);
-
-function cardValue(array){
-  if (array[0] == "ace"){
-    return 11
-  }
-  if (array[0] == "two"){
-    return 2
-  }
-  if (array[0] == "three"){
-    return 3
-  }
-  if (array[0] == "four"){
-    return 4
-  }
-  if (array[0] == "five"){
-    return 5
-  }
-  if (array[0] == "six"){
-    return 6
-  }
-  if (array[0] == "seven"){
-    return 7
-  }
-  if (array[0] == "eight"){
-      return 8
-  }
-  if (array[0] == "nine"){
-    return 9
-  }
-  if (array[0] == "ten"){
-    return 10
-  }
-  if (array[0] == "jack"){
-    return 10
-  }
-  if (array[0] == "queen"){
-    return 10
-  }
-  if (array[0] == "king"){
-    return 10
-  }
-}
 
 function handValue(hand) {
   var total = 0;
@@ -119,7 +101,7 @@ function handCheck(hand){
     return total;
   } else {
     hand.forEach(function(card) {
-      if (card[0] == "ace") {
+      if (card[0] == "A") {
         aceCount = aceCount + 1;
       }
       console.log(total + "ace count done");
@@ -151,15 +133,15 @@ function handCheck(hand){
 
 $(document).ready(function() {
 
-  var playerOneHand = dealCards(shuffledDeck, 2)
-  var dealerHand = dealCards(shuffledDeck, 2)
-
-
   function displayHand(hand){
     if (hand == playerOneHand){
       $(".playerOne").text("");
       hand.forEach(function(card) {
-        $(".playerOne").append(card[0] + symbol(card[1]));
+        if (card[1] == "hearts"  || card[1] == "diamonds"){
+          $(".playerOne").append("<span id='redCard'>" + card[0] + symbol(card[1]) + "</span>");
+        } else {
+          $(".playerOne").append("<span id='blackCard'>" + card[0] + symbol(card[1]) + "</span>");
+        }
       })
     }
     x = 1
@@ -167,14 +149,29 @@ $(document).ready(function() {
       $(".dealer").text("");
       hand.forEach(function(card) {
         if (x == 1){
-        $(".hole-card").append(card[0] + symbol(card[1]));
-      } else{
-      $(".dealer").append(card[0] + symbol(card[1]));
-    }
-      x -= 1;
+          if (card[1] == "hearts"  || card[1] == "diamonds"){
+            $(".hole-card").append("<span id='redCard'>" + card[0] + symbol(card[1]) + "</span>");
+          } else {
+            $(".hole-card").append("<span id='blackCard'>" + card[0] + symbol(card[1]) + "</span>");
+          }
+        } else{
+          if (card[1] == "hearts"  || card[1] == "diamonds"){
+            $(".dealer").append("<span id='redCard'>" + card[0] + symbol(card[1]) + "</span>");
+          } else {
+            $(".dealer").append("<span id='blackCard'>" + card[0] + symbol(card[1]) + "</span>");
+          }
+        }
+        x -= 1;
       })
     }
   }
+  function updateTotalsDisplay() {
+    $(".totals").text("Player One = " + playerHandValue);
+    $(".dealer-total").text("Dealer = " + dealerHandValue);
+  }
+
+  var playerOneHand = dealCards(shuffledDeck, 2)
+  var dealerHand = dealCards(shuffledDeck, 2)
 
   displayHand(playerOneHand)
   displayHand(dealerHand)
@@ -182,69 +179,64 @@ $(document).ready(function() {
   var playerHandValue = handCheck(playerOneHand);
   var dealerHandValue = handCheck(dealerHand);
 
-  function updateTotalsDisplay() {
-    $(".totals").text("Player One = " + playerHandValue);
-    $(".dealer-total").text("Dealer = " + dealerHandValue);
-  }
-
   updateTotalsDisplay();
 
   if (playerHandValue == 21) {
     $(".outcome").text("Congratulations, you win!");
+    $(".card-reverse").hide();
     $(".hole-card").show();
     $(".dealer-total").show();
   } else if (dealerHandValue == 21) {
     $(".outcome").text("Sorry, the dealer wins.")
+    $(".card-reverse").hide();
     $(".hole-card").show();
     $(".dealer-total").show();
   }
-// playerOneHand.push(dealCards(shuffledDeck, 1))
-//   while (gameOver = 0) {
-    $("#hit").click(function(){
-      playerOneHand.push(shuffledDeck.pop());
-      displayHand(playerOneHand);
-      playerHandValue = handCheck(playerOneHand);
-      updateTotalsDisplay();
-      if (playerHandValue == "Busted") {
-        $(".outcome").text("Sorry, you have busted, the dealer wins.")
-        $(".hole-card").show();
-        $(".dealer-total").show();
-      }
-    })
 
-    $("#stand").click(function() {
-      console.log(dealerHandValue + "zero");
-      if (dealerHandValue < 17 && dealerHandValue <= playerHandValue) {
-        console.log(dealerHandValue + "first");
-        while (dealerHandValue < 17) {
-          console.log(dealerHandValue + "second");
+  $("#hit").click(function(){
+    playerOneHand.push(shuffledDeck.pop());
+    displayHand(playerOneHand);
+    playerHandValue = handCheck(playerOneHand);
+    updateTotalsDisplay();
+    if (playerHandValue == "Busted") {
+      $(".outcome").text("Sorry, you have busted, the dealer wins.")
+      $(".card-reverse").hide();
+      $(".hole-card").show();
+      $(".dealer-total").show();
+    }
+  })
+
+  $("#stand").click(function() {
+    console.log(dealerHandValue + "zero");
+    if (dealerHandValue < 17 && dealerHandValue <= playerHandValue) {
+      console.log(dealerHandValue + "first");
+      while (dealerHandValue < 17) {
+        console.log(dealerHandValue + "second");
         dealerHand.push(shuffledDeck.pop());
         displayHand(dealerHand);
         dealerHandValue = handCheck(dealerHand);
         updateTotalsDisplay();
-        }
       }
-      if (playerHandValue > dealerHandValue || dealerHandValue == "Busted") {
-        console.log(dealerHandValue + "third");
-        $(".outcome").text("Congratulations, you win!");
-        $(".hole-card").show();
-        $(".dealer-total").show();
-      } else if (playerHandValue < dealerHandValue) {
-        console.log(dealerHandValue + "fourth");
-        $(".outcome").text("Sorry, the dealer wins.");
-        $(".hole-card").show();
-        $(".dealer-total").show();
-      } else if (playerHandValue == dealerHandValue) {
-        $(".outcome").text("It's a tie, try again.");
-        $(".hole-card").show();
-        $(".dealer-total").show();
-      }
-    })
-
-
-    // })
-    console.log(playerOneHand);
-
-
-
+    }
+    if (playerHandValue > dealerHandValue || dealerHandValue == "Busted") {
+      console.log(dealerHandValue + "third");
+      $(".outcome").text("Congratulations, you win!");
+      $(".card-reverse").hide();
+      $(".hole-card").show();
+      $(".dealer-total").show();
+    } else if (playerHandValue < dealerHandValue) {
+      console.log(dealerHandValue + "fourth");
+      $(".outcome").text("Sorry, the dealer wins.");
+      $(".card-reverse").hide();
+      $(".hole-card").show();
+      $(".dealer-total").show();
+    } else if (playerHandValue == dealerHandValue) {
+      $(".outcome").text("It's a tie, try again.");
+      $(".hole-card").show();
+      $(".dealer-total").show();
+    }
+  })
+  $("#refresh").click(function(){
+    location.reload(true);
+  })
 });
